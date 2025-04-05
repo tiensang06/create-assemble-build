@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -579,7 +578,11 @@ const SortVisualizer = () => {
         </div>
 
         <div className="lg:col-span-3">
-          <Instructions algorithm={algorithm.name} />
+          <Instructions 
+            algorithm={algorithm.name} 
+            currentStep={currentStep}
+            totalSteps={sortingSteps.length - 1}
+          />
         </div>
       </div>
     </div>
