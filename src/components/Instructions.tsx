@@ -6,19 +6,27 @@ interface InstructionsProps {
   algorithm: string;
   currentStep?: number;
   totalSteps?: number;
+  isComparisonMode?: boolean;
+  algorithmStates?: {
+    name: string;
+    currentStep: number;
+    totalSteps: number;
+  }[];
 }
 
 const Instructions: React.FC<InstructionsProps> = ({ 
   algorithm, 
   currentStep = 0, 
-  totalSteps = 1 
+  totalSteps = 1,
+  isComparisonMode = false,
+  algorithmStates = []
 }) => {
-  // Calculate progress percentage
+  // Calculate progress percentage for single algorithm mode
   const progress = Math.min(Math.floor((currentStep / Math.max(totalSteps, 1)) * 100), 100);
   
   // Instructions based on the selected algorithm
-  const getInstructions = () => {
-    switch (algorithm.toLowerCase()) {
+  const getInstructions = (algoName: string) => {
+    switch (algoName.toLowerCase()) {
       case 'bubble sort':
         return [
           'Compare adjacent elements, swapping them if they are in the wrong order',
@@ -61,8 +69,8 @@ const Instructions: React.FC<InstructionsProps> = ({
   };
 
   // Get more detailed execution steps for each algorithm
-  const getDetailedSteps = () => {
-    switch (algorithm.toLowerCase()) {
+  const getDetailedSteps = (algoName: string) => {
+    switch (algoName.toLowerCase()) {
       case 'bubble sort':
         return [
           'Comparing adjacent elements in the array',
@@ -128,30 +136,78 @@ const Instructions: React.FC<InstructionsProps> = ({
     }
   };
 
-  // Get the instructions and detailed steps arrays
-  const instructions = getInstructions();
-  const detailedSteps = getDetailedSteps();
-  
-  // Determine which step we're on based on progress
-  const getCurrentInstructionIndex = () => {
+  // Determine which step we're on based on progress for a single algorithm
+  const getCurrentInstructionIndex = (progress: number, instructionsLength: number) => {
     if (progress <= 0) return -1;
-    if (progress >= 100) return instructions.length;
+    if (progress >= 100) return instructionsLength;
     
     // Map progress percentage to instruction index
-    return Math.min(Math.floor((progress / 100) * instructions.length), instructions.length - 1);
+    return Math.min(Math.floor((progress / 100) * instructionsLength), instructionsLength - 1);
   };
   
-  // Determine which detailed step we're on
-  const getCurrentDetailedStepIndex = () => {
+  // Determine which detailed step we're on for a single algorithm
+  const getCurrentDetailedStepIndex = (progress: number, stepsLength: number) => {
     if (progress <= 0) return -1;
-    if (progress >= 100) return detailedSteps.length;
+    if (progress >= 100) return stepsLength;
     
     // Map progress percentage to detailed step index
-    return Math.min(Math.floor((progress / 100) * detailedSteps.length), detailedSteps.length - 1);
+    return Math.min(Math.floor((progress / 100) * stepsLength), stepsLength - 1);
   };
+
+  if (isComparisonMode) {
+    return (
+      <Card className="p-6 rounded-xl shadow-sm">
+        <h2 className="text-lg font-semibold mb-4">Algorithm Comparison</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {algorithmStates.map((algoState, index) => {
+            const algoProgress = Math.min(Math.floor((algoState.currentStep / Math.max(algoState.totalSteps, 1)) * 100), 100);
+            const instructions = getInstructions(algoState.name);
+            const detailedSteps = getDetailedSteps(algoState.name);
+            const currentInstructionIndex = getCurrentInstructionIndex(algoProgress, instructions.length);
+            const currentDetailedStepIndex = getCurrentDetailedStepIndex(algoProgress, detailedSteps.length);
+            
+            return (
+              <div key={index} className="border rounded-lg p-4">
+                <h3 className="text-md font-semibold mb-2">{algoState.name}</h3>
+                
+                {algoProgress > 0 && algoProgress < 100 && (
+                  <div className="mb-4 text-sm text-blue-600">
+                    Progress: {algoProgress}% complete
+                  </div>
+                )}
+                
+                {algoProgress >= 100 && (
+                  <div className="mb-4 text-sm text-green-600 font-medium">
+                    Sorting completed!
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Current Action:</h4>
+                  {currentDetailedStepIndex >= 0 && currentDetailedStepIndex < detailedSteps.length ? (
+                    <div className="p-2 bg-amber-50 border-l-4 border-amber-500 text-sm">
+                      {detailedSteps[currentDetailedStepIndex]}
+                    </div>
+                  ) : (
+                    <div className="p-2 text-sm text-gray-500">
+                      Waiting to start...
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    );
+  }
   
-  const currentInstructionIndex = getCurrentInstructionIndex();
-  const currentDetailedStepIndex = getCurrentDetailedStepIndex();
+  // Get the instructions and detailed steps arrays for single algorithm mode
+  const instructions = getInstructions(algorithm);
+  const detailedSteps = getDetailedSteps(algorithm);
+  const currentInstructionIndex = getCurrentInstructionIndex(progress, instructions.length);
+  const currentDetailedStepIndex = getCurrentDetailedStepIndex(progress, detailedSteps.length);
 
   return (
     <Card className="p-6 rounded-xl shadow-sm">

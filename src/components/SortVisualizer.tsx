@@ -67,10 +67,8 @@ const SortVisualizer = () => {
   const sortingInterval = useRef<number | null>(null);
 
   useEffect(() => {
-    // Initialize with the array visualization
     setSortingSteps([{ array: [...array] }]);
     
-    // Initialize algorithm states for comparison mode
     const initialStates = algorithms.map(algo => ({
       name: algo.name,
       array: [...array],
@@ -87,7 +85,6 @@ const SortVisualizer = () => {
     };
   }, []);
 
-  // Update algorithm states when the input array changes
   useEffect(() => {
     if (!isSorting) {
       const updatedStates = algorithms.map(algo => ({
@@ -122,7 +119,6 @@ const SortVisualizer = () => {
     setIsSorting(true);
     
     if (isComparisonMode) {
-      // Generate steps for all algorithms in comparison mode
       const newAlgorithmStates = algorithms.map(algo => {
         const steps = generateSteps(algo);
         return {
@@ -135,18 +131,15 @@ const SortVisualizer = () => {
       });
       setAlgorithmStates(newAlgorithmStates);
     } else {
-      // Standard mode - just one algorithm
       const steps = generateSteps(algorithm);
       setSortingSteps(steps);
       setCurrentStep(0);
     }
     
-    // Calculate the interval based on speed
     const intervalTime = 1000 / (speed * 1);
     
     sortingInterval.current = window.setInterval(() => {
       if (isComparisonMode) {
-        // Update all algorithm states in comparison mode
         setAlgorithmStates(prevStates => {
           const allCompleted = prevStates.every(state => 
             state.currentStep >= state.steps.length - 1
@@ -162,7 +155,6 @@ const SortVisualizer = () => {
             return prevStates;
           }
           
-          // Update each algorithm's current step
           return prevStates.map(state => {
             const nextStep = state.currentStep + 1;
             if (nextStep >= state.steps.length) {
@@ -179,7 +171,6 @@ const SortVisualizer = () => {
           });
         });
       } else {
-        // Standard mode - update just one algorithm
         setCurrentStep(prevStep => {
           const nextStep = prevStep + 1;
           if (nextStep >= sortingSteps.length) {
@@ -209,7 +200,6 @@ const SortVisualizer = () => {
     handleStopSorting();
     
     if (isComparisonMode) {
-      // Reset all algorithm states
       setAlgorithmStates(prevStates => 
         prevStates.map(state => ({
           ...state,
@@ -219,14 +209,12 @@ const SortVisualizer = () => {
         }))
       );
     } else {
-      // Reset the single algorithm
       setCurrentStep(0);
     }
   };
 
   const handleNextStep = () => {
     if (isComparisonMode) {
-      // Advance all algorithms by one step
       setAlgorithmStates(prevStates => {
         return prevStates.map(state => {
           if (state.currentStep < state.steps.length - 1) {
@@ -267,7 +255,6 @@ const SortVisualizer = () => {
       
       sortingInterval.current = window.setInterval(() => {
         if (isComparisonMode) {
-          // Update all algorithm states in comparison mode
           setAlgorithmStates(prevStates => {
             const allCompleted = prevStates.every(state => 
               state.currentStep >= state.steps.length - 1
@@ -283,7 +270,6 @@ const SortVisualizer = () => {
               return prevStates;
             }
             
-            // Update each algorithm's current step
             return prevStates.map(state => {
               const nextStep = state.currentStep + 1;
               if (nextStep >= state.steps.length) {
@@ -323,7 +309,6 @@ const SortVisualizer = () => {
     setArray(newArray);
     setSortingSteps([{ array: newArray }]);
     
-    // Update all algorithm states with the new array
     setAlgorithmStates(prevStates => 
       prevStates.map(state => ({
         ...state,
@@ -347,7 +332,6 @@ const SortVisualizer = () => {
     setIsMultiCompare(false);
     
     if (!isComparisonMode) {
-      // When turning on comparison mode, generate initial states for algorithms
       const initialStates = algorithms.slice(0, 2).map(algo => ({
         name: algo.name,
         array: [...array],
@@ -365,7 +349,6 @@ const SortVisualizer = () => {
     }
     setIsMultiCompare(!isMultiCompare);
     
-    // When turning on multi-compare mode, ensure we have all 6 algorithms ready
     const initialStates = algorithms.map(algo => ({
       name: algo.name,
       array: [...array],
@@ -378,6 +361,12 @@ const SortVisualizer = () => {
 
   const currentArray = sortingSteps[currentStep]?.array || array;
   const currentHighlights = sortingSteps[currentStep]?.highlights || [];
+
+  const instructionAlgorithmStates = algorithmStates.map(state => ({
+    name: state.name,
+    currentStep: state.currentStep,
+    totalSteps: state.steps.length - 1
+  }));
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -546,7 +535,6 @@ const SortVisualizer = () => {
                   disabled={isSorting}
                   onValueChange={(value) => {
                     if (isComparisonMode) {
-                      // Update all algorithms to the same step
                       setAlgorithmStates(prevStates => 
                         prevStates.map(state => {
                           if (value[0] < state.steps.length) {
@@ -582,6 +570,8 @@ const SortVisualizer = () => {
             algorithm={algorithm.name} 
             currentStep={currentStep}
             totalSteps={sortingSteps.length - 1}
+            isComparisonMode={isComparisonMode}
+            algorithmStates={isComparisonMode ? instructionAlgorithmStates : []}
           />
         </div>
       </div>
